@@ -32,12 +32,16 @@ class _ClockScreenState extends State<ClockScreen>
   StreamSubscription<BatteryState>? _batteryStateSub;
   StreamSubscription<HardwareButton>? _volumeSub;
   Timer? _burnInTimer;
-  Timer? _detailsTimer;
+  Timer? _batteryTimer;
+  Timer? _dateTimer;
+  Timer? _weatherTimer;
 
   int? _batteryLevel;
   double _brightness = 1.0;
   Offset _offset = Offset.zero;
-  bool _showDetails = false;
+  bool _showBattery = false;
+  bool _showDate = false;
+  bool _showWeather = false;
 
   @override
   void initState() {
@@ -45,7 +49,6 @@ class _ClockScreenState extends State<ClockScreen>
     WidgetsBinding.instance.addObserver(this);
     _enableImmersiveMode();
     _enableWakelock();
-    _startBurnInTimer();
     _listenToBattery();
     _listenToVolumeButtons();
   }
@@ -54,7 +57,9 @@ class _ClockScreenState extends State<ClockScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _burnInTimer?.cancel();
-    _detailsTimer?.cancel();
+    _batteryTimer?.cancel();
+    _dateTimer?.cancel();
+    _weatherTimer?.cancel();
     _batteryStateSub?.cancel();
     _volumeSub?.cancel();
     WakelockPlus.disable();
@@ -137,15 +142,41 @@ class _ClockScreenState extends State<ClockScreen>
     }
   }
 
-  void _showDetailsTemporarily() {
-    _detailsTimer?.cancel();
+  void _showBatteryTemporarily() {
+    _batteryTimer?.cancel();
     setState(() {
-      _showDetails = true;
+      _showBattery = true;
     });
-    _detailsTimer = Timer(const Duration(seconds: 3), () {
+    _batteryTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       setState(() {
-        _showDetails = false;
+        _showBattery = false;
+      });
+    });
+  }
+
+  void _showDateTemporarily() {
+    _dateTimer?.cancel();
+    setState(() {
+      _showDate = true;
+    });
+    _dateTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _showDate = false;
+      });
+    });
+  }
+
+  void _showWeatherTemporarily() {
+    _weatherTimer?.cancel();
+    setState(() {
+      _showWeather = true;
+    });
+    _weatherTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _showWeather = false;
       });
     });
   }
@@ -159,24 +190,25 @@ class _ClockScreenState extends State<ClockScreen>
         bottom: false,
         left: false,
         right: false,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _showDetailsTemporarily,
-          child: Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeInOut,
-              transform: Matrix4.translationValues(
-                _offset.dx,
-                _offset.dy,
-                0,
-              ),
-              child: Opacity(
-                opacity: _brightness,
-                child: ClockWidget(
-                  batteryLevel: _batteryLevel,
-                  showDetails: _showDetails,
-                ),
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            transform: Matrix4.translationValues(
+              _offset.dx,
+              _offset.dy,
+              0,
+            ),
+            child: Opacity(
+              opacity: _brightness,
+              child: ClockWidget(
+                batteryLevel: _batteryLevel,
+                showBattery: _showBattery,
+                showDate: _showDate,
+                showWeather: _showWeather,
+                onBatteryTap: _showBatteryTemporarily,
+                onDateTap: _showDateTemporarily,
+                onWeatherTap: _showWeatherTemporarily,
               ),
             ),
           ),

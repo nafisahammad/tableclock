@@ -6,11 +6,21 @@ class ClockWidget extends StatefulWidget {
   const ClockWidget({
     super.key,
     this.batteryLevel,
-    required this.showDetails,
+    required this.showBattery,
+    required this.showDate,
+    required this.showWeather,
+    required this.onBatteryTap,
+    required this.onDateTap,
+    required this.onWeatherTap,
   });
 
   final int? batteryLevel;
-  final bool showDetails;
+  final bool showBattery;
+  final bool showDate;
+  final bool showWeather;
+  final VoidCallback onBatteryTap;
+  final VoidCallback onDateTap;
+  final VoidCallback onWeatherTap;
 
   @override
   State<ClockWidget> createState() => _ClockWidgetState();
@@ -49,12 +59,13 @@ class _ClockWidgetState extends State<ClockWidget> {
 
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
-        var timeFontSize = (width * 0.22).clamp(96.0, 220.0);
-        if (!widget.showDetails) {
-          timeFontSize = (timeFontSize * 2.5).clamp(140.0, width * 0.95);
-        }
+        
+        // Time font size - adjusted to fit on screen
+        final timeFontSize = (width * 0.22 * 2.2).clamp(100.0, width * 0.85);
+        
         final detailFontSize = (height * 0.055).clamp(22.0, 46.0);
         final batteryFontSize = (height * 0.045).clamp(18.0, 38.0);
+        final cornerFontSize = (height * 0.04).clamp(16.0, 32.0);
 
         final timeStyle = TextStyle(
           fontFamily: 'Technology',
@@ -63,17 +74,10 @@ class _ClockWidgetState extends State<ClockWidget> {
           fontWeight: FontWeight.w700,
           letterSpacing: 2.0,
         );
-        final detailStyle = TextStyle(
+        final cornerStyle = TextStyle(
           fontFamily: 'Technology',
           color: Colors.white,
-          fontSize: detailFontSize,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
-        );
-        final batteryStyle = TextStyle(
-          fontFamily: 'Technology',
-          color: Colors.white,
-          fontSize: batteryFontSize,
+          fontSize: cornerFontSize,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         );
@@ -81,36 +85,110 @@ class _ClockWidgetState extends State<ClockWidget> {
         return SizedBox(
           width: width,
           height: height,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: width,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    timeText,
-                    style: timeStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                  if (widget.showDetails) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      dateText,
-                      style: detailStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      batteryText,
-                      style: batteryStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
+          child: Stack(
+            children: [
+              // Centered time (locked at 2.5x size)
+              Center(
+                child: Text(
+                  timeText,
+                  style: timeStyle,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+              
+              // Top right: Battery
+              Positioned(
+                top: 16,
+                right: 16,
+                child: AnimatedOpacity(
+                  opacity: widget.showBattery ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: GestureDetector(
+                    onTap: widget.onBatteryTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.battery_full,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${widget.batteryLevel ?? '--'}%',
+                            style: cornerStyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Bottom right: Date
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: AnimatedOpacity(
+                  opacity: widget.showDate ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: GestureDetector(
+                    onTap: widget.onDateTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _formatDate(_now),
+                        style: cornerStyle,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Bottom left: Weather
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: AnimatedOpacity(
+                  opacity: widget.showWeather ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: GestureDetector(
+                    onTap: widget.onWeatherTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Weather',
+                        style: cornerStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
