@@ -2,6 +2,21 @@
 
 A new Flutter project.
 
+## Setup
+
+### Weather API
+
+This app uses OpenWeatherMap for weather data. To enable weather functionality:
+
+1. Get a free API key from [OpenWeatherMap](https://openweathermap.org/api)
+2. Copy `lib/secrets.template.dart` to `lib/secrets.dart`
+3. Run the app with your API key:
+   ```bash
+   flutter run --dart-define=OPENWEATHER_API_KEY=your_api_key_here
+   ```
+
+**Important:** Never commit `lib/secrets.dart` to version control as it contains your API key.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

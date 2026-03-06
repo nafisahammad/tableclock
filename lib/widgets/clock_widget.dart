@@ -1,6 +1,8 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import 'weather_widget.dart';
 
 class ClockWidget extends StatefulWidget {
   const ClockWidget({
@@ -12,6 +14,7 @@ class ClockWidget extends StatefulWidget {
     required this.onBatteryTap,
     required this.onDateTap,
     required this.onWeatherTap,
+    this.weatherLabel,
   });
 
   final int? batteryLevel;
@@ -21,6 +24,7 @@ class ClockWidget extends StatefulWidget {
   final VoidCallback onBatteryTap;
   final VoidCallback onDateTap;
   final VoidCallback onWeatherTap;
+  final String? weatherLabel;
 
   @override
   State<ClockWidget> createState() => _ClockWidgetState();
@@ -59,19 +63,19 @@ class _ClockWidgetState extends State<ClockWidget> {
 
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
-        
+
         // Time font size - adjusted to fit on screen
-        final timeFontSize = (width * 0.22 * 2.2).clamp(100.0, width * 0.85);
-        
+        final timeFontSize = (width * 0.85).clamp(100.0, 400.0);
+
         final detailFontSize = (height * 0.055).clamp(22.0, 46.0);
         final batteryFontSize = (height * 0.045).clamp(18.0, 38.0);
         final cornerFontSize = (height * 0.04).clamp(16.0, 32.0);
 
         final timeStyle = TextStyle(
-          fontFamily: 'Technology',
+          fontFamily: 'DigitalDismay',
           color: Colors.white,
           fontSize: timeFontSize,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.normal,
           letterSpacing: 2.0,
         );
         final cornerStyle = TextStyle(
@@ -87,7 +91,7 @@ class _ClockWidgetState extends State<ClockWidget> {
           height: height,
           child: Stack(
             children: [
-              // Centered time (locked at 2.5x size)
+              // Centered time (locked)
               Center(
                 child: Text(
                   timeText,
@@ -95,7 +99,7 @@ class _ClockWidgetState extends State<ClockWidget> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              
+
               // Top right: Battery
               Positioned(
                 top: 16,
@@ -133,7 +137,7 @@ class _ClockWidgetState extends State<ClockWidget> {
                   ),
                 ),
               ),
-              
+
               // Bottom right: Date
               Positioned(
                 bottom: 16,
@@ -161,31 +165,16 @@ class _ClockWidgetState extends State<ClockWidget> {
                   ),
                 ),
               ),
-              
+
               // Bottom left: Weather
               Positioned(
                 bottom: 16,
                 left: 16,
-                child: AnimatedOpacity(
-                  opacity: widget.showWeather ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: GestureDetector(
-                    onTap: widget.onWeatherTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white, width: 1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Weather',
-                        style: cornerStyle,
-                      ),
-                    ),
-                  ),
+                child: WeatherWidget(
+                  visible: widget.showWeather,
+                  onTap: widget.onWeatherTap,
+                  text: widget.weatherLabel ?? 'Weather',
+                  textStyle: cornerStyle,
                 ),
               ),
             ],
@@ -196,9 +185,9 @@ class _ClockWidgetState extends State<ClockWidget> {
   }
 
   String _formatTime(DateTime now) {
-    final hour = now.hour.toString().padLeft(2, '0');
+    final hour24 = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return '$hour24:$minute';
   }
 
   String _formatDate(DateTime now) {
